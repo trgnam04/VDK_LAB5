@@ -14,6 +14,7 @@
 
 void command_parser_fsm(void);
 void uart_communication_fsm(void);
+void Init_Parser(UART_HandleTypeDef* huart1, ADC_HandleTypeDef* hadc1);
 
 
 #endif /* INC_COMMAND_PARSER_H_ */

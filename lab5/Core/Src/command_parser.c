@@ -7,9 +7,18 @@
 
 #include "command_parser.h"
 
-unsigned char start_send_data = 0;
-unsigned char stop_send_data = 0;
-unsigned char flag_timeout = 0;
+#define TIMEOUT 300
+
+unsigned char start_send_data = RESET;
+unsigned char stop_send_data = RESET;
+unsigned char flag_timeout = RESET;
+unsigned char string[100];
+uint16_t timeout_counter = TIMEOUT;
+int ADC_value = 0;
+
+
+UART_HandleTypeDef* huart;
+ADC_HandleTypeDef* hadc;
 
 enum command_parser_state {
 	IDLE,
@@ -24,18 +33,26 @@ enum command_parser_state {
 };
 
 enum uart_communication_state {
-	ERROR,
-	IDLE_HANDLER,
+	COMMUNICATE_ERROR,
+	WAITING,
 	TIME_OUT_STATE,
 	START_SEND_DATA,
 	STOP_SEND_DATA
 };
 
 enum command_parser_state commandParserState =  IDLE;
-enum uart_communication_state uartCommunicationState = IDLE_HANDLER;
+enum uart_communication_state uartCommunicationState = WAITING;
+
+
+
+void Init_Parser(UART_HandleTypeDef* huart1, ADC_HandleTypeDef* hadc1){
+	huart = huart1;
+	hadc =	hadc1;
+}
 
 void command_parser_fsm(void){
 	unsigned char bufferCheck = buffer[index_buffer - 1];
+
 	switch(commandParserState){
 	case IDLE:{
 		if(bufferCheck == '!'){
@@ -65,8 +82,8 @@ void command_parser_fsm(void){
 		break;
 	}
 	case RECEIVE_S:{
-		if(bufferCheck == 'S'){
-			commandParserState = RECEIVE_S;
+		if(bufferCheck == 'T'){
+			commandParserState = RECEIVE_T;
 		}
 		else{
 			commandParserState = IDLE;
@@ -83,6 +100,7 @@ void command_parser_fsm(void){
 		break;
 	}
 	case RECEIVE_O:{
+		flag_timeout = SET;
 		if(bufferCheck == 'K'){
 			commandParserState = RECEIVE_K;
 		}
@@ -101,13 +119,16 @@ void command_parser_fsm(void){
 		break;
 	}
 	case START_SEND_DATA_SIGNAL:{
-		start_send_data = 1;
-		stop_send_data = 0;
+		start_send_data = SET;
+		stop_send_data = RESET;
+		HAL_UART_Transmit(huart, &buffer[index_buffer - 1], 1, 100);
+		commandParserState = IDLE;
 		break;
 	}
 	case STOP_SEND_DATA_SIGNAL:{
-		start_send_data = 0;
-		stop_send_data = 1;
+		start_send_data = RESET;
+		stop_send_data = SET;
+		commandParserState = IDLE;
 		break;
 	}
 	}
@@ -115,11 +136,56 @@ void command_parser_fsm(void){
 }
 
 void uart_communication_fsm(void){
+	ADC_value = HAL_ADC_GetValue(hadc);
+	sprintf((void*)string, "!ADC=%d#\r\n", ADC_value);
+
 	switch(uartCommunicationState){
-	case ERROR:{
+	case COMMUNICATE_ERROR:{
+		HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+		HAL_Delay(1000);
 		break;
 	}
-	case IDLE_HANDLER:{
+	case WAITING:{
+		flag_timeout = 0;
+
+		if(start_send_data){
+			uartCommunicationState = START_SEND_DATA;
+		}
+		if(stop_send_data){
+			uartCommunicationState = COMMUNICATE_ERROR;
+		}
+		break;
+	}
+	case TIME_OUT_STATE:{
+		timeout_counter--;
+
+		// change state
+		if(timeout_counter == 0){
+			timeout_counter = TIMEOUT;
+			uartCommunicationState = START_SEND_DATA;
+		}
+		if(stop_send_data){
+			uartCommunicationState = STOP_SEND_DATA;
+		}
+		break;
+	}
+	case START_SEND_DATA:{
+		HAL_UART_Transmit(huart, (void*)string, sizeof(string), 100);
+
+		if(stop_send_data){
+			uartCommunicationState = STOP_SEND_DATA;
+		}
+		if(flag_timeout){
+			uartCommunicationState = TIME_OUT_STATE;
+		}
+		break;
+	}
+	case STOP_SEND_DATA:{
+
+		uartCommunicationState = WAITING;
+		break;
+	}
+	default:{
 		break;
 	}
 	}

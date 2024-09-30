@@ -11,13 +11,13 @@ unsigned char timer1_flag = 0;
 unsigned char timer2_flag = 0;
 unsigned char timer3_flag = 0;
 
-static int timer1_counter = 0;
-static int timer2_counter = 0;
-static int timer3_counter = 0;
+int timer1_counter = 0;
+int timer2_counter = 0;
+int timer3_counter = 0;
 
-static int timer1_mul = 0;
-static int timer2_mul = 0;
-static int timer3_mul = 0;
+int timer1_mul = 0;
+int timer2_mul = 0;
+int timer3_mul = 0;
 
 void setTimer1(int duration){
 	timer1_mul = duration / TIMER_CYCLE_1;
@@ -69,5 +69,6 @@ void timer3Run(void){
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim->Instance == TIM2){
+		timer1Run();
 	}
 }

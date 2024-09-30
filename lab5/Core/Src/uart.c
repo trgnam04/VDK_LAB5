@@ -8,19 +8,20 @@
 #include "uart.h"
 
 #define BUFFER_SIZE 30
-unsigned char msg[100]; // use for transmit string type
+unsigned char msg[] = "hello\n"; // use for transmit string type
 unsigned char buffer[BUFFER_SIZE];
 unsigned char buffer_receive = 0;
+unsigned char buffer_flag = 0;
 unsigned char index_buffer = 0;
 
 
 void UART_SendString(UART_HandleTypeDef *huart, unsigned char* str){
-	HAL_UART_Transmit(&huart2, (void*)msg, sprintf((void*)msg,"%s",str), 10);
+	HAL_UART_Transmit(huart, (void*)msg, sprintf((void*)msg,"%s",str), 10);
 }
 
 
-void UART_SendByte(unsigned char data){
-	HAL_UART_Transmit(&huart2, data, 1, 100);
+void UART_SendByte(UART_HandleTypeDef* huart, unsigned char data){
+	HAL_UART_Transmit(huart, &data, 1, 100);
 }
 
 

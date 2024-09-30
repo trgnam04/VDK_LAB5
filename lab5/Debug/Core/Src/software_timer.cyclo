@@ -4,4 +4,4 @@
 ../Core/Src/software_timer.c:41:6:timer1Run	3
 ../Core/Src/software_timer.c:50:6:timer2Run	3
 ../Core/Src/software_timer.c:59:6:timer3Run	3
-../Core/Src/software_timer.c:70:6:HAL_TIM_PeriodElapsedCallback	1
+../Core/Src/software_timer.c:70:6:HAL_TIM_PeriodElapsedCallback	2

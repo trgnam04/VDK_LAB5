@@ -10,7 +10,7 @@
 
 #include "main.h"
 #include "uart.h"
-
+#include "software_timer.h"
 
 void command_parser_fsm(void);
 void uart_communication_fsm(void);

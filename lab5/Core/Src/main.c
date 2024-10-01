@@ -99,7 +99,9 @@ int main(void)
   MX_TIM2_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  setTimer1(1);
+  HAL_TIM_Base_Start_IT(&htim2);
+  setTimer1(100);
+  setTimer2(50);
   Init_Parser(&huart2, &hadc1);
   UART_StartReceive(&huart2);
 
@@ -119,6 +121,10 @@ int main(void)
 		  buffer_flag = 0;
 	  }
 	  uart_communication_fsm();
+//	  if(timer1_flag){
+//		  HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+//		  setTimer1(100);
+//	  }
   }
   /* USER CODE END 3 */
 }

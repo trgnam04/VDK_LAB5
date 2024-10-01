@@ -100,7 +100,7 @@ void command_parser_fsm(void){
 		break;
 	}
 	case RECEIVE_O:{
-		flag_timeout = SET;
+
 		if(bufferCheck == 'K'){
 			commandParserState = RECEIVE_K;
 		}
@@ -121,11 +121,12 @@ void command_parser_fsm(void){
 	case START_SEND_DATA_SIGNAL:{
 		start_send_data = SET;
 		stop_send_data = RESET;
-		HAL_UART_Transmit(huart, &buffer[index_buffer - 1], 1, 100);
 		commandParserState = IDLE;
 		break;
 	}
 	case STOP_SEND_DATA_SIGNAL:{
+		HAL_UART_Transmit(huart, (void*)"STOP\r\n", sizeof("STOP\r\n"), 100);
+
 		start_send_data = RESET;
 		stop_send_data = SET;
 		commandParserState = IDLE;
@@ -141,12 +142,10 @@ void uart_communication_fsm(void){
 
 	switch(uartCommunicationState){
 	case COMMUNICATE_ERROR:{
-		HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
-		HAL_Delay(1000);
+		HAL_UART_Transmit(huart, (void*)"COMMUNICATE ERROR\r\n", sizeof("COMMUNICATE ERROR\r\n"), 100);
 		break;
 	}
 	case WAITING:{
-		flag_timeout = 0;
 
 		if(start_send_data){
 			uartCommunicationState = START_SEND_DATA;
@@ -157,7 +156,10 @@ void uart_communication_fsm(void){
 		break;
 	}
 	case TIME_OUT_STATE:{
-		timeout_counter--;
+		if(timer1_flag){
+			timeout_counter--;
+			setTimer1(1);
+		}
 
 		// change state
 		if(timeout_counter == 0){
@@ -165,23 +167,30 @@ void uart_communication_fsm(void){
 			uartCommunicationState = START_SEND_DATA;
 		}
 		if(stop_send_data){
+			timeout_counter = TIMEOUT;
 			uartCommunicationState = STOP_SEND_DATA;
 		}
 		break;
 	}
 	case START_SEND_DATA:{
-		HAL_UART_Transmit(huart, (void*)string, sizeof(string), 100);
+		//  send data
+		if(timer2_flag){
+			HAL_UART_Transmit(huart, (void*)string, sizeof(string), 100);
+			setTimer2(50);
+		}
+
 
 		if(stop_send_data){
 			uartCommunicationState = STOP_SEND_DATA;
 		}
-		if(flag_timeout){
+
+		if(buffer_flag){
 			uartCommunicationState = TIME_OUT_STATE;
 		}
 		break;
 	}
 	case STOP_SEND_DATA:{
-
+		stop_send_data = RESET;
 		uartCommunicationState = WAITING;
 		break;
 	}

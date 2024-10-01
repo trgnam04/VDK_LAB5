@@ -27,7 +27,7 @@ Core/Src/command_parser.o: ../Core/Src/command_parser.c \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h \
  ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h \
- ../Core/Inc/uart.h
+ ../Core/Inc/uart.h ../Core/Inc/software_timer.h
 ../Core/Inc/command_parser.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h:
@@ -58,3 +58,4 @@ Core/Src/command_parser.o: ../Core/Src/command_parser.c \
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h:
 ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h:
 ../Core/Inc/uart.h:
+../Core/Inc/software_timer.h:

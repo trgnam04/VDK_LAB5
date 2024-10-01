@@ -70,5 +70,6 @@ void timer3Run(void){
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim->Instance == TIM2){
 		timer1Run();
+		timer2Run();
 	}
 }
